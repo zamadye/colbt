@@ -19,6 +19,11 @@ jobs:
         with:
           node-version: '18'
       
+      - name: Setup Git
+        run: |
+          git config --global user.name "Kahfi Elhady"
+          git config --global user.email "kahfie@gmail.com"
+      
       - name: Install OpenClaw
         run: |
           npm install -g openclaw@latest
