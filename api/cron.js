@@ -1,36 +1,59 @@
 const { spawn } = require('child_process');
 
 module.exports = async (req, res) => {
-  // Verify cron secret (optional security)
   const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  console.log('🎯 Cron triggered:', new Date().toISOString());
+  console.log('🎯 Daily cron triggered:', new Date().toISOString());
+  console.log('⏱️  Will run for 24 hours with 20-min intervals');
 
-  try {
-    const result = await runHunt();
-    res.status(200).json({ 
-      success: true, 
-      timestamp: new Date().toISOString(),
-      result 
-    });
-  } catch (error) {
-    console.error('❌ Hunt failed:', error);
-    res.status(500).json({ 
-      success: false, 
-      error: error.message 
-    });
-  }
+  // Run for 24 hours (72 iterations x 20 min)
+  const maxIterations = 72;
+  let iteration = 1;
+  const results = [];
+
+  const runLoop = async () => {
+    while (iteration <= maxIterations) {
+      console.log(`\n🔄 Iteration ${iteration}/${maxIterations}`);
+      
+      try {
+        const result = await runHunt(iteration);
+        results.push({ iteration, success: true, timestamp: new Date().toISOString() });
+      } catch (error) {
+        console.error(`❌ Iteration ${iteration} failed:`, error.message);
+        results.push({ iteration, success: false, error: error.message });
+      }
+
+      iteration++;
+      
+      // Wait 20 minutes before next iteration (unless last one)
+      if (iteration <= maxIterations) {
+        await new Promise(resolve => setTimeout(resolve, 20 * 60 * 1000));
+      }
+    }
+  };
+
+  // Start loop in background
+  runLoop().catch(console.error);
+
+  // Respond immediately
+  res.status(200).json({ 
+    success: true, 
+    message: '24-hour bounty hunt started',
+    iterations: maxIterations,
+    interval: '20 minutes',
+    started: new Date().toISOString()
+  });
 };
 
-function runHunt() {
+function runHunt(iteration) {
   return new Promise((resolve, reject) => {
     const agent = spawn('openclaw', [
       'agent',
-      '--session-id', `cron-${Date.now()}`,
-      '--message', `CRON HUNT
+      '--session-id', `cron-${Date.now()}-${iteration}`,
+      '--message', `HUNT ITERATION ${iteration}
 
 HUMAN IDENTITY:
 - Git: Kahfi Elhady <kahfie@gmail.com>
