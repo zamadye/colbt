@@ -55,8 +55,8 @@
         </div>
         
         <div class="card">
-            <h2>📝 Live Logs</h2>
-            <div class="log" id="logs">Connecting to logs...</div>
+            <h2>📝 Real-Time Logs</h2>
+            <div class="log" id="logs">Loading real logs...</div>
         </div>
     </div>
 
@@ -90,10 +90,16 @@
         }
         
         function updateLogs() {
-            const logs = document.getElementById('logs');
-            const now = new Date().toLocaleTimeString();
-            logs.innerHTML += `[${now}] Bounty hunter active...\n`;
-            logs.scrollTop = logs.scrollHeight;
+            fetch('/api/logs')
+                .then(response => response.json())
+                .then(data => {
+                    const logs = document.getElementById('logs');
+                    logs.innerHTML = data.logs.join('\n');
+                    logs.scrollTop = logs.scrollHeight;
+                })
+                .catch(error => {
+                    console.error('Error loading logs:', error);
+                });
         }
         
         // Load data on page load

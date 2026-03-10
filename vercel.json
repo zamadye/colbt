@@ -20,9 +20,9 @@
       "dest": "/api/status.js"
     },
     {
-      "src": "/api/cron",
-      "dest": "/api/cron.js"
-    }
+      "src": "/api/logs",
+      "dest": "/api/logs.js"
+    },
   ],
   "crons": [
     {
