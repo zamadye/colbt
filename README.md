@@ -33,3 +33,4 @@ vercel --prod
 - PR #136: bfw-systems/bfw (typo fix)
 - 100% success rate
 # colbt
+test auto-login
