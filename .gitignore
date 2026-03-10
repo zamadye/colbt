@@ -1,0 +1,7 @@
+node_modules/
+.env
+.vercel
+logs/*.log
+*-results.json
+*.tmp
+.DS_Store

@@ -1,0 +1,17 @@
+{
+  "name": "openclaw-bounty-hunter",
+  "version": "1.0.0",
+  "description": "Autonomous bounty hunter using OpenClaw SDK",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node index.js",
+    "hunt": "node index.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {},
+  "author": "Kahfi Elhady <kahfie@gmail.com>",
+  "license": "MIT"
+}
