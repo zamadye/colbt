@@ -19,12 +19,7 @@ jobs:
         with:
           node-version: '22'
       
-      - name: Setup Git
-        run: |
-          git config --global user.name "Kahfi Elhady"
-          git config --global user.email "kahfie@gmail.com"
-      
-      - name: Run Bounty Hunt (Direct API)
+      - name: Run Bounty Hunt (API Only)
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
