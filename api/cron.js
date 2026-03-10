@@ -1,80 +1,74 @@
 const { spawn } = require('child_process');
 
 module.exports = async (req, res) => {
+  // Verify cron secret
   const authHeader = req.headers.authorization;
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  console.log('🎯 Daily cron triggered:', new Date().toISOString());
-  console.log('⏱️  Will run for 24 hours with 20-min intervals');
+  console.log('🎯 Cron triggered:', new Date().toISOString());
 
-  // Run for 24 hours (72 iterations x 20 min)
-  const maxIterations = 72;
-  let iteration = 1;
-  const results = [];
-
-  const runLoop = async () => {
-    while (iteration <= maxIterations) {
-      console.log(`\n🔄 Iteration ${iteration}/${maxIterations}`);
-      
-      try {
-        const result = await runHunt(iteration);
-        results.push({ iteration, success: true, timestamp: new Date().toISOString() });
-      } catch (error) {
-        console.error(`❌ Iteration ${iteration} failed:`, error.message);
-        results.push({ iteration, success: false, error: error.message });
-      }
-
-      iteration++;
-      
-      // Wait 20 minutes before next iteration (unless last one)
-      if (iteration <= maxIterations) {
-        await new Promise(resolve => setTimeout(resolve, 20 * 60 * 1000));
-      }
-    }
-  };
-
-  // Start loop in background
-  runLoop().catch(console.error);
-
-  // Respond immediately
+  // Respond immediately (Vercel has 10s timeout)
   res.status(200).json({ 
     success: true, 
-    message: '24-hour bounty hunt started',
-    iterations: maxIterations,
-    interval: '20 minutes',
-    started: new Date().toISOString()
+    message: 'Bounty hunt started',
+    timestamp: new Date().toISOString(),
+    note: 'Agent running in background'
   });
+
+  // Run single hunt iteration
+  try {
+    const result = await runHunt();
+    console.log('✅ Hunt completed:', result);
+  } catch (error) {
+    console.error('❌ Hunt failed:', error.message);
+  }
 };
 
-function runHunt(iteration) {
+function runHunt() {
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      agent.kill();
+      reject(new Error('Timeout after 8 seconds'));
+    }, 8000);
+
     const agent = spawn('openclaw', [
       'agent',
-      '--session-id', `cron-${Date.now()}-${iteration}`,
-      '--message', `HUNT ITERATION ${iteration}
+      '--session-id', `cron-${Date.now()}`,
+      '--message', `BOUNTY HUNT
 
 HUMAN IDENTITY:
 - Git: Kahfi Elhady <kahfie@gmail.com>
-- Casual commits & PR descriptions
+- Casual commits & PR
 - NO AI markers
 
 WORKFLOW:
-1. Algora API first
-2. GitHub bounties backup
-3. Pick 1 issue, fix, PR
-4. Monitor existing PRs
+1. Algora API: curl https://console.algora.io/api/bounties.json
+2. GitHub backup: is:issue is:open label:"good first issue"
+3. Pick 1 simple issue (typo/import/lint)
+4. Clone, fix, test, PR
+5. Monitor existing PRs for comments
 
-Token: ${process.env.GITHUB_TOKEN}`
+Token: ${process.env.GITHUB_TOKEN}
+
+Keep it quick and simple.`
     ], {
       env: process.env,
-      timeout: 600000
+      detached: true,
+      stdio: 'ignore'
     });
 
-    let output = '';
-    agent.stdout.on('data', (data) => output += data.toString());
-    agent.on('close', (code) => resolve({ code, output: output.substring(0, 500) }));
-    agent.on('error', reject);
+    agent.unref();
+    
+    agent.on('spawn', () => {
+      clearTimeout(timeout);
+      resolve({ status: 'started', pid: agent.pid });
+    });
+
+    agent.on('error', (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
   });
 }

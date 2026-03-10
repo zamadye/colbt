@@ -1,0 +1,8 @@
+repos/
+enhanced-rass/
+bounty-hunting/
+agent-suite/
+logs/
+*.log
+*-results.json
+.git/

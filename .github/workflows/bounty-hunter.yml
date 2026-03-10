@@ -1,0 +1,47 @@
+name: Bounty Hunter
+
+on:
+  schedule:
+    - cron: '*/20 * * * *'  # Every 20 minutes
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Install OpenClaw
+        run: |
+          npm install -g openclaw@latest
+          openclaw --version
+      
+      - name: Run Bounty Hunt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          openclaw agent --session-id "gh-action-$(date +%s)" --message "BOUNTY HUNT
+
+          HUMAN IDENTITY:
+          - Git: Kahfi Elhady <kahfie@gmail.com>
+          - Casual commits & PR
+          - NO AI markers
+
+          WORKFLOW:
+          1. Algora API first
+          2. GitHub bounties backup
+          3. Pick 1 simple issue
+          4. Clone, fix, test, PR
+          5. Monitor existing PRs
+
+          Token: $GITHUB_TOKEN
+
+          Quick and simple."
