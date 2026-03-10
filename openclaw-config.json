@@ -1,0 +1,85 @@
+{
+  "gateway": {
+    "mode": "local",
+    "port": 18789,
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "openclaw-bounty-hunter-2026"
+    }
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "~/.openclaw/workspace",
+      "model": {
+        "primary": "zai/claude-3-5-sonnet-20241022"
+      },
+      "subagents": {
+        "maxSpawnDepth": 2,
+        "maxConcurrent": 3
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "name": "Main Orchestrator",
+        "workspace": "~/.openclaw/workspace"
+      },
+      {
+        "id": "discovery",
+        "name": "Discovery Agent",
+        "workspace": "~/.openclaw/workspace"
+      },
+      {
+        "id": "analysis",
+        "name": "Analysis Agent",
+        "workspace": "~/.openclaw/workspace"
+      },
+      {
+        "id": "coding",
+        "name": "Coding Agent",
+        "workspace": "~/.openclaw/workspace"
+      },
+      {
+        "id": "verification",
+        "name": "Verification Agent",
+        "workspace": "~/.openclaw/workspace"
+      },
+      {
+        "id": "submission",
+        "name": "Submission Agent",
+        "workspace": "~/.openclaw/workspace"
+      }
+    ]
+  },
+  "models": {
+    "mode": "merge",
+    "providers": {
+      "zai": {
+        "baseUrl": "https://api.z.ai/api/anthropic",
+        "api": "anthropic-messages",
+        "apiKey": "31b0c713ff5a4e749a2adb4e11f567ef.yb6qEUDVkwOXuUcK",
+        "authHeader": true,
+        "models": [
+          {
+            "id": "claude-3-5-sonnet-20241022",
+            "name": "Claude 3.5 Sonnet",
+            "api": "anthropic-messages",
+            "reasoning": false,
+            "input": ["text", "image"],
+            "contextWindow": 200000,
+            "maxTokens": 8192
+          }
+        ]
+      }
+    }
+  },
+  "tools": {
+    "allow": ["exec", "process", "read", "write", "edit", "sessions_spawn", "sessions_list", "session_status"],
+    "exec": {
+      "backgroundMs": 10000,
+      "timeoutSec": 1800
+    }
+  }
+}
