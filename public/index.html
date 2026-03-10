@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bounty Hunter Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card { background: white; padding: 20px; margin: 10px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .status { display: inline-block; padding: 4px 8px; border-radius: 4px; color: white; font-size: 12px; }
+        .success { background: #28a745; }
+        .error { background: #dc3545; }
+        .running { background: #007bff; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .log { background: #000; color: #0f0; padding: 15px; border-radius: 4px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto; }
+        .refresh { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        .refresh:hover { background: #0056b3; }
+        h1 { color: #333; }
+        h2 { color: #666; margin-top: 0; }
+        .metric { text-align: center; }
+        .metric-value { font-size: 2em; font-weight: bold; color: #007bff; }
+        .metric-label { color: #666; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Bounty Hunter Dashboard</h1>
+        
+        <div class="grid">
+            <div class="card">
+                <h2>📊 System Status</h2>
+                <div id="system-status">Loading...</div>
+            </div>
+            
+            <div class="card">
+                <h2>📈 Metrics</h2>
+                <div class="grid">
+                    <div class="metric">
+                        <div class="metric-value" id="total-runs">-</div>
+                        <div class="metric-label">Total Runs</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value" id="success-rate">-</div>
+                        <div class="metric-label">Success Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>🔄 Recent Activity</h2>
+            <button class="refresh" onclick="loadData()">Refresh</button>
+            <div id="activity">Loading...</div>
+        </div>
+        
+        <div class="card">
+            <h2>📝 Live Logs</h2>
+            <div class="log" id="logs">Connecting to logs...</div>
+        </div>
+    </div>
+
+    <script>
+        async function loadData() {
+            try {
+                // Load GitHub Actions status
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                document.getElementById('system-status').innerHTML = `
+                    <div>GitHub Actions: <span class="status ${data.github.status}">${data.github.status.toUpperCase()}</span></div>
+                    <div>Vercel: <span class="status ${data.vercel.status}">${data.vercel.status.toUpperCase()}</span></div>
+                    <div>Last Run: ${data.github.lastRun || 'N/A'}</div>
+                    <div>Next Run: ${data.github.nextRun || 'N/A'}</div>
+                `;
+                
+                document.getElementById('total-runs').textContent = data.metrics.totalRuns;
+                document.getElementById('success-rate').textContent = data.metrics.successRate + '%';
+                
+                document.getElementById('activity').innerHTML = data.activity.map(run => `
+                    <div style="margin: 10px 0; padding: 10px; border-left: 4px solid ${run.status === 'success' ? '#28a745' : '#dc3545'};">
+                        <strong>Run #${run.number}</strong> - ${run.status} (${run.duration})
+                        <br><small>${run.timestamp}</small>
+                    </div>
+                `).join('');
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+        
+        function updateLogs() {
+            const logs = document.getElementById('logs');
+            const now = new Date().toLocaleTimeString();
+            logs.innerHTML += `[${now}] Bounty hunter active...\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+        
+        // Load data on page load
+        loadData();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadData, 30000);
+        
+        // Simulate live logs
+        setInterval(updateLogs, 5000);
+    </script>
+</body>
+</html>
